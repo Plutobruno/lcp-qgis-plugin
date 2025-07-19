@@ -1,0 +1,26 @@
+# metadata.txt
+[general]
+name=LCP Network Tools
+qgisMinimumVersion=3.16
+description=A plugin to generate Least Cost Paths and Networks using the methodologies from Carroll and Carroll (2022).
+about=This plugin implements the 'rotate and oversample' technique for LCP generation and the 'minimum total cost' methodology for network creation. It requires a compiled Fortran backend.
+version=1.0.0
+author=Edward Carroll, Fiona Carroll (Plugin by AI)
+email=user@example.com
+icon=icon.png
+
+[plugin_dependencies]
+
+[tags]
+LCP,Network Analysis,Archaeology,Routing,Cost Path
+
+[licenses]
+license=GPL2+
+
+[links]
+homepage=
+tracker=
+repository=
+
+[experimental]
+flag=False

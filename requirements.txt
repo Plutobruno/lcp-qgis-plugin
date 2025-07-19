@@ -1,0 +1,3 @@
+# requirements.txt
+# Required for compiling the Fortran backend
+numpy

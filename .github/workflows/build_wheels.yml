@@ -1,0 +1,72 @@
+#.github/workflows/build_wheels.yml
+name: Build Fortran Wheels
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-13]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU (for Linux ARM builds)
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel
+
+      - name: Install Fortran compiler (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y gfortran
+
+      - name: Install Fortran compiler (macOS)
+        if: runner.os == 'macOS'
+        run: brew install gcc
+
+      - name: Install Fortran compiler (Windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc-fortran
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          # For macOS, point to the brew-installed gfortran
+          FC: /usr/local/bin/gfortran
+          # For Windows, add MinGW to path
+          PATH: C:\msys64\mingw64\bin;${{ env.PATH }}
+          # Specify architectures to build
+          CIBW_ARCHS_LINUX: auto aarch64
+          CIBW_ARCHS_MACOS: x86_64 arm64
+          CIBW_ARCHS_WINDOWS: auto
+          # Skip Python 2.7 and 32-bit builds
+          CIBW_SKIP: "cp27-* pp* *-win32 *-musllinux*"
+          # Add numpy to build requirements
+          CIBW_BEFORE_BUILD: "pip install numpy"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path:./wheelhouse/*.whl
